@@ -18,7 +18,7 @@ function App() {
   const [rtime, setrtime] = useState(10)
   const [startTimer, setStartTimer] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [timer, setTimer] = useState(10)
+  const [timer, setTimer] = useState(20)
   const [supName, setSupName] = useState([])
   const [showButton, setShowButton] = useState(false);
   const [error, setError] = useState("");
@@ -269,7 +269,7 @@ function App() {
 
     // }
     let timerId = setInterval(countdown, 1000);
-    let timeLeft = 20
+    let timeLeft = 19
 
     setStartTimer(true)
 
