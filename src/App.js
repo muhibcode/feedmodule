@@ -269,7 +269,7 @@ function App() {
 
     // }
     let timerId = setInterval(countdown, 1000);
-    let timeLeft = 5
+    let timeLeft = 20
 
     setStartTimer(true)
 
