@@ -441,6 +441,17 @@ function App() {
               //   }
 
               // }
+              // if ((newRR[index]['Supplier'] == newRR[q]['Supplier'])
+              //   && (newRR[index]['SKU'] == newRR[q]['SKU'])
+              //   && (newRR[index]['PRICE'] == newRR[q]['PRICE'])
+              //   && (newRR[index]['STOCK'] == newRR[q]['STOCK'])) {
+
+              //   newRR.splice(q, 1)
+              //   // console.log('hello');
+              //   // break
+              // }
+              // console.log('hello');
+              //-------------------------------------------------------------------------------------
               for (let index = 0; index < newRR.length; index++) {
                 for (let q = index + 1; q < newRR.length; q++) {
                   if (newRR[index]['SKU'] == newRR[q]['SKU']) {
@@ -450,17 +461,6 @@ function App() {
                       // break
                     }
                   }
-                  // if ((newRR[index]['Supplier'] == newRR[q]['Supplier'])
-                  //   && (newRR[index]['SKU'] == newRR[q]['SKU'])
-                  //   && (newRR[index]['PRICE'] == newRR[q]['PRICE'])
-                  //   && (newRR[index]['STOCK'] == newRR[q]['STOCK'])) {
-
-                  //   newRR.splice(q, 1)
-                  //   // console.log('hello');
-                  //   // break
-                  // }
-                  // console.log('hello');
-
                 }
               }
               // ----------------------------------------------------------------------------------------------
