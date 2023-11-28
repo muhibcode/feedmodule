@@ -751,7 +751,7 @@ function App() {
         }
         <br />
         <div>
-          <input placeholder='Search History' type='text' name='search_history'
+          <input placeholder='Search Lowest Price' type='text' name='search_history'
             onChange={(e) => setHSearch(e.target.value)} />
         </div>
         <br />
@@ -773,8 +773,9 @@ function App() {
         </div>
         <br />
         <br />
+        <h6>*Please Upload the Excel files by clicking choose files button</h6>
         <div>
-          <input placeholder='Search File Records' type='text' name='search_file_records'
+          <input placeholder='Search Excel File Records' type='text' name='search_file_records'
             onChange={(e) => setSearch(e.target.value)} />
         </div>
         <br />
