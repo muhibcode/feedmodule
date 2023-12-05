@@ -719,7 +719,7 @@ function App() {
           <>
             {/* <Button onClick={submit}>SAVE</Button> */}
             <br />
-            <ExportExcel excelData={farr} fileName={'Excel Export'} />
+            <ExportExcel excelData={farr} fileName={'Result'} />
             <br />
           </>
         }
