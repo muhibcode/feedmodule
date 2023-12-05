@@ -269,7 +269,7 @@ function App() {
 
     // }
     let timerId = setInterval(countdown, 1000);
-    let timeLeft = 3
+    let timeLeft = 19
 
     setStartTimer(true)
 
