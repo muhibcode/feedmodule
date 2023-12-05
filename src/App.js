@@ -720,10 +720,11 @@ function App() {
             {/* <Button onClick={submit}>SAVE</Button> */}
             <br />
             <ExportExcel excelData={farr} fileName={'Excel Export'} />
+            <br />
           </>
         }
-        <br />
         <div>
+          <h6>Find Lowest Price</h6>
           <input placeholder='Search Lowest Price' type='text' name='search_history'
             onChange={(e) => setHSearch(e.target.value)} />
         </div>
@@ -734,6 +735,7 @@ function App() {
         <br />
         <br />
         <div>
+          <h6>Find Stock in Record</h6>
           <input placeholder='Search Stock in Records' type='text' name='stock_in_records'
             onChange={(e) => {
               // e.preventDefault()
