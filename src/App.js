@@ -9,6 +9,7 @@ import React from 'react';
 import dateFormat from 'dateformat';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import axiosClient, { base_url } from './Api';
 // import Dexie from 'dexie';
 
 // const allowedExtensions = ["csv"];
@@ -159,7 +160,7 @@ function App() {
         },
       });
     }
-    // console.log(mArr);
+    // console.log(base_url);
 
   };
 
@@ -239,7 +240,6 @@ function App() {
             priceArr.push(newPrice)
 
           }
-          //.replace(/[^\d\+]+/g, '')
           stockArr.push(warr[j]['results'].data[c][stockTag[j]].replace(/[^\d\+]+/g, ''))
           nSkuArr.push(warr[j]['results'].data[c][skuTag[j]])
           setSkus(skuArr)
@@ -259,7 +259,7 @@ function App() {
       stockArr = []
     }
 
-    console.log(mArr);
+    // console.log(mArr);
     // let num = 'sred,12345'
     // let nnum = num.replace(/,/g, '')
     // console.log(nnum);
@@ -269,7 +269,7 @@ function App() {
 
     // }
     let timerId = setInterval(countdown, 1000);
-    let timeLeft = 19
+    let timeLeft = 3
 
     setStartTimer(true)
 
@@ -397,15 +397,11 @@ function App() {
 
               newNum.forEach((v, i) => {
                 if (minimum == v) {
-                  // console.log(`minimum ${stock[i]}`);
-
                   sArr.push(newStock[i])
                 }
               })
 
               let maxStock = Math.max(...sArr)
-              let np = []
-              let ns = []
               newNum.forEach((v, p) => {
                 data = {}
 
@@ -421,36 +417,7 @@ function App() {
                   }
                 }
               })
-              // nSkus = []
-              // let nr = newRR.filter((v, i) => v['Supplier'] != newRR[i]['Supplier'])
-              // newRR.find()
-              // console.log(newRR.sort((a, b) => b['SKU'] - a['SKU']));
-              console.log(newRR);
-              // ----------------------------------------------------------------------------------------
 
-              // for (let index = 0; index < newRR.length; index++) {
-
-              //   if (fSkus[i] == newRR[index]['SKU']) {
-              //     newRR.splice(index, 1)
-
-              //     // if (newRR[index]['Supplier'] == newRR[index]['Supplier']) {
-              //     //   console.log(newRR[index]['SKU']);
-
-              //     //   // break
-              //     // }
-              //   }
-
-              // }
-              // if ((newRR[index]['Supplier'] == newRR[q]['Supplier'])
-              //   && (newRR[index]['SKU'] == newRR[q]['SKU'])
-              //   && (newRR[index]['PRICE'] == newRR[q]['PRICE'])
-              //   && (newRR[index]['STOCK'] == newRR[q]['STOCK'])) {
-
-              //   newRR.splice(q, 1)
-              //   // console.log('hello');
-              //   // break
-              // }
-              // console.log('hello');
               //-------------------------------------------------------------------------------------
               for (let index = 0; index < newRR.length; index++) {
                 for (let q = index + 1; q < newRR.length; q++) {
@@ -522,14 +489,14 @@ function App() {
     // console.log(newRR);
 
     // console.log(filesArr);
-    // const res = await axios.post('http://localhost:8000/api/mfeeditems', { 'data': filesArr })
-    // const nres = await axios.post('http://localhost:8000/api/feeditems', { 'data': newRR })
-    // //res['status'] == 200 && 
-    // if (nres['status'] == 200) {
-    //   // setLoading(false)
-    //   setShowButton(false)
+    const res = await axiosClient.post('/masfeeditems', { 'data': filesArr })
+    const nres = await axiosClient.post('/feeditems', { 'data': newRR })
+    //res['status'] == 200 && 
+    if (nres['status'] == 200) {
+      // setLoading(false)
+      setShowButton(false)
 
-    // }
+    }
 
     //  console.log(`EPrice ${Object.values(filesArr[0])}`);
 
@@ -537,7 +504,7 @@ function App() {
   const findStockInRec = async () => {
     let rfeed = []
     let feed = searchStock
-    let feeds = await axios.get(`http://localhost:8000/api/mfeeditems/${feed}`)
+    let feeds = await axiosClient.get(`/masfeeditems/${feed}`)
     // console.log(feeds);
 
     for (let index = 0; index < feeds.data['feeds'].length; index++) {
@@ -551,7 +518,7 @@ function App() {
   const findFeeds = async () => {
     let hfeed = []
     let feed = hSearch
-    let feeds = await axios.get(`http://localhost:8000/api/feeditems/${feed}`)
+    let feeds = await axiosClient.get(`/feeditems/${feed}`)
     // console.log(feeds);
 
     for (let index = 0; index < feeds.data['feeds'].length; index++) {
@@ -583,7 +550,7 @@ function App() {
     let nDate = yr + '-' + mm + '-' + dd
     // console.log(nDate);
 
-    let feeds = await axios.post('http://localhost:8000/api/findfeedByDate', { 'data': nDate })
+    let feeds = await axiosClient.post('/findfeedByDate', { 'data': nDate })
 
     // for (let index = 0; index < feeds.data['feeds'].length; index++) {
 
@@ -619,29 +586,35 @@ function App() {
     let nDate = yr + '-' + mm + '-' + dd
     // console.log(nDate);
 
-    let feeds = await axios.post('http://localhost:8000/api/findByDate', { 'data': nDate })
+    let feeds = await axiosClient.post('/findByDate', { 'data': nDate })
 
     setMDateFeed(feeds.data['feeds'])
     // console.log(dateFormat(feeds.data['feeds'][0]['created_at']));
   }
   const delFeed = async (id) => {
 
-    await axios.delete(`http://localhost:8000/api/feeds/${id}`)
+    await axiosClient.delete(`/feeds/${id}`)
     let dFeed = dateFeed.filter((v) => v['id'] !== id)
     setDateFeed(dFeed)
 
   }
   const delMFeed = async (id) => {
 
-    await axios.delete(`http://localhost:8000/api/mfeeds/${id}`)
+    await axiosClient.delete(`/mfeeds/${id}`)
     let dFeed = mDateFeed.filter((v) => v['id'] !== id)
     setMDateFeed(dFeed)
 
   }
+  const getAllFeeds = async () => {
+    const nres = await axiosClient.get('/masfeeds')
+
+    console.log(nres);
+
+  }
   const submit = async () => {
 
-    const res = await axios.post('http://localhost:8000/api/mfeeditems', { 'data': filesArr })
-    const nres = await axios.post('http://localhost:8000/api/feeditems', { 'data': newRR })
+    const res = await axiosClient.post('/masfeeditems', { 'data': filesArr })
+    const nres = await axiosClient.post('/feeditems', { 'data': newRR })
 
     if (res['status'] == 200 && nres['status'] == 200) {
       // setLoading(false)
@@ -783,7 +756,11 @@ function App() {
           <button className='btn btn-primary' onClick={handleSearch}>Search</button>
         </div>
         <br />
-        <h6>Find results by Date</h6>
+        {/* <h6>Show all Feeds</h6>
+        <Button className='primary' onClick={getAllFeeds}>
+          Feeds
+        </Button> */}
+        {/* <h6>Find results by Date</h6>
         <div>
           <DatePicker selected={startDate} onChange={(date) => {
             findByDate(date)
@@ -798,7 +775,7 @@ function App() {
             setMStartDate(date)
           }} />
 
-        </div>
+        </div> */}
         {searchArr.length > 0 && <>  <Row>
           <h3>Search File Results</h3>
           <Col >
