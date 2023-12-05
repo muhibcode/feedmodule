@@ -492,7 +492,7 @@ function App() {
     const res = await axiosClient.post('/masfeeditems', { 'data': filesArr })
     const nres = await axiosClient.post('/feeditems', { 'data': newRR })
     //res['status'] == 200 && 
-    if (nres['status'] == 200) {
+    if (res['status'] == 200 && nres['status'] == 200) {
       // setLoading(false)
       setShowButton(false)
 
