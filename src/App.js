@@ -10,6 +10,9 @@ import dateFormat from 'dateformat';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axiosClient, { base_url } from './Api';
+import * as XLSX from 'xlsx/xlsx.mjs';
+import FileSaver from 'file-saver';
+
 // import Dexie from 'dexie';
 
 // const allowedExtensions = ["csv"];
@@ -48,6 +51,10 @@ function App() {
   const [startMDate, setMStartDate] = useState(new Date());
   const [farr, setFarr] = useState([])
 
+  const [csvF, setCsvF] = useState('');
+  let csvf = []
+  let csvnames = []
+
   let data = {}
   let fData = {}
   let pData = {}
@@ -58,6 +65,7 @@ function App() {
   let nSkuArr = []
   let priceArr = []
   let stockArr = []
+  let nameArr = []
 
   let newRR = []
   let mArr = []
@@ -94,12 +102,12 @@ function App() {
 
     for (let index = 0; index < mainArr.length; index++) {
       for (let q = 0; q < mainArr[index]['sku'].length; q++) {
-        if (search.toLowerCase() === (mainArr[index]['sku'][q]).toLowerCase()) {
+        if (search.toLowerCase() == String(mainArr[index]['sku'][q]).toLowerCase()) {
 
           sData['sku'] = mainArr[index]['sku'][q]
           sData['price'] = mainArr[index]['price'][q]
           sData['stock'] = mainArr[index]['stock'][q]
-          sData['supplier_name'] = warr[index]['name']
+          sData['supplier_name'] = mainArr[index]['supplier'][q]
           locArr.push(sData)
           // locArr.sort()
           setSearchArr(locArr)
@@ -142,7 +150,7 @@ function App() {
       Papa.parse(element, {
         download: true,
         header: true,
-        skipEmptyLines: false,
+        skipEmptyLines: true,
 
         complete: function (results, file) {
           pData['name'] = file.name
@@ -155,6 +163,8 @@ function App() {
           if (drr.length == inputFile.length) {
             setWarr(drr)
             setSupName(sname)
+            console.log(drr);
+
           }
 
         },
@@ -169,94 +179,515 @@ function App() {
   function toNumber(value) {
     return Number(value);
   }
+
+  const handleXlUpoad = async (e) => {
+    const inputFile = await e.target.files;
+    setFile(inputFile)
+
+
+
+
+    // XLSX.utils.sheet_to_json
+    // for (let index = 0; index < inputFile.length; index++) {
+    // const wb = XLSX.read(inputFile)
+
+    // const sh = XLSX.utils.sheet_to_csv(wb.Sheets[0]);
+    // XLSX.writeFile(wb, 'converted.csv', { bookType: 'csv', type: 'array' })
+    // var res = "";
+    // wb.SheetNames.forEach((n, idx) => {
+    //   const ws = wb.Sheets[n];
+    //   // res += `<b>Sheet #${idx + 1} (${n})</b>\n`;
+    //   res += XLSX.utils.sheet_to_csv(ws) + "\n\n";
+
+    // });
+    // csvf.push(res)
+
+    // console.log(inputFile);
+
+    // const ws = res.Sheets
+    // const sj = { Sheets: { 'data': res }, SheetNames: ['data'] }
+    // const ws = XLSX.utils.sheet_to_csv(inputFile)
+
+    // const excelBuffer = XLSX.write(sj, { bookType: 'csv', type: 'array' })
+    // const data = new Blob([excelBuffer], { type: 'charset=UTF-8' })
+    // FileSaver.saveAs(sh, 'converted.csv')
+
+
+    // }
+
+  }
+
+  const handleNParse = async (event) => {
+    for (let index = 0; index < file.length; index++) {
+      const element = file[index];
+      const wb = XLSX.read(await element.arrayBuffer())
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const nsheet = XLSX.utils.sheet_to_json(ws)
+      console.log(element['name']);
+      if (element['name'].includes('WERD')) {
+        let fdata = {}
+        for (let index = 0; index < nsheet.length; index++) {
+          for (let q = index + 1; q < nsheet.length; q++) {
+            if (nsheet[index]['__EMPTY_3'] != undefined && !String(nsheet[index]['__EMPTY_3']).includes('EUR')) {
+              if (nsheet[index]['__EMPTY'] == nsheet[q]['__EMPTY'] &&
+                nsheet[index]['__EMPTY_3'] == nsheet[q]['__EMPTY_3']) {
+                console.log(nsheet[index]['__EMPTY']);
+                nsheet.splice(q, 1)
+
+              }
+            }
+
+          }
+        }
+        // console.log(nsheet);
+
+        nsheet.forEach((e) => {
+          if (e['__EMPTY_3'] != undefined && !String(e['__EMPTY_3']).includes('EUR')) {
+
+            let newPrice = String(e['__EMPTY_3']).replace(/,/g, '')
+            let fPrice = newPrice.replace(/£/g, '')
+
+            if (!isNaN(fPrice)) {
+              skuArr.push(e['__EMPTY'])
+              priceArr.push((euro * toNumber(fPrice)).toString())
+              stockArr.push(String(e['__EMPTY_1']).replace(/[^\d\+]+/g, ''))
+              nameArr.push(element['name'])
+              // console.log(stockArr);
+              nSkuArr.push(e['__EMPTY'])
+              setSkus(skuArr)
+            }
+            // console.log(String(e['__EMPTY']));
+            // fdata['SKU'] = e['__EMPTY']
+            // fdata['EUR'] = e['__EMPTY_3']
+            // fdata['QTY'] = e['__EMPTY_1']
+            // fdata['Supplier Name'] = element['name']
+
+
+            // csvnames.push(fdata)
+            // fdata = {}
+          }
+
+        })
+        nData['sku'] = nSkuArr
+        nData['price'] = priceArr
+        nData['stock'] = stockArr
+        nData['supplier'] = nameArr
+        mArr.push(nData)
+        setMainArr(mArr)
+        nData = {}
+        nSkuArr = []
+        priceArr = []
+        stockArr = []
+        nameArr = []
+
+
+      }
+      // let count = 0
+
+      if (element['name'].includes('PL')) {
+        let fdata = {}
+        for (let index = 0; index < nsheet.length; index++) {
+          for (let q = index + 1; q < nsheet.length; q++) {
+            if (Object.keys(nsheet[index]).includes('  PROKS PRICELIST ') && !String(nsheet[index]['__EMPTY_1']).includes('EURO')) {
+              if (nsheet[index]['  PROKS PRICELIST '] == nsheet[q]['  PROKS PRICELIST '] &&
+                nsheet[index]['__EMPTY_1'] == nsheet[q]['__EMPTY_1']) {
+                console.log(nsheet[index]['  PROKS PRICELIST ']);
+                nsheet.splice(q, 1)
+
+              }
+            }
+
+          }
+        }
+        console.log(nsheet);
+
+        nsheet.forEach((e, i) => {
+
+          if (Object.keys(e).includes('  PROKS PRICELIST ') && !String(e['__EMPTY_1']).includes('EURO')) {
+
+            let newPrice = String(e['__EMPTY_1']).replace(/,/g, '')
+            let fPrice = newPrice.replace(/£/g, '')
+
+            if (!isNaN(fPrice)) {
+              skuArr.push(e['  PROKS PRICELIST '])
+              priceArr.push((euro * toNumber(fPrice)).toString())
+              stockArr.push(String(e['__EMPTY_5']).replace(/[^\d\+]+/g, ''))
+              nameArr.push(element['name'])
+              // console.log(stockArr);
+              nSkuArr.push(e['  PROKS PRICELIST '])
+              setSkus(skuArr)
+            }
+          }
+
+        })
+
+        nData['sku'] = nSkuArr
+        nData['price'] = priceArr
+        nData['stock'] = stockArr
+        nData['supplier'] = nameArr
+        mArr.push(nData)
+        setMainArr(mArr)
+        nData = {}
+        nSkuArr = []
+        priceArr = []
+        stockArr = []
+        nameArr = []
+      }
+
+      if (element['name'].includes('synaxon')) {
+        for (let index = 0; index < nsheet.length; index++) {
+          for (let q = index + 1; q < nsheet.length; q++) {
+            if (nsheet[index]['MPN'] == nsheet[q]['MPN'] &&
+              nsheet[index]['Price'] == nsheet[q]['Price']) {
+
+              nsheet.splice(q, 1)
+              // console.log(q);
+
+            }
+          }
+        }
+
+        console.log(nsheet);
+
+        nsheet.forEach((e, i) => {
+
+          let newPrice = String(e['Price']).replace(/,/g, '')
+          let fPrice = newPrice.replace(/£/g, '')
+
+          if (!isNaN(fPrice)) {
+            skuArr.push(String(e['MPN']))
+            priceArr.push(fPrice)
+            stockArr.push(String(e['Stock']).replace(/[^\d\+]+/g, ''))
+            nameArr.push(element['name'])
+            nSkuArr.push(String(e['MPN']))
+            setSkus(skuArr)
+          }
+
+        })
+
+        nData['sku'] = nSkuArr
+        nData['price'] = priceArr
+        nData['stock'] = stockArr
+        nData['supplier'] = nameArr
+        mArr.push(nData)
+        setMainArr(mArr)
+        nData = {}
+        nSkuArr = []
+        priceArr = []
+        stockArr = []
+        nameArr = []
+      }
+
+      if (element['name'].includes('Spire')) {
+        for (let index = 0; index < nsheet.length; index++) {
+          for (let q = index + 1; q < nsheet.length; q++) {
+            if (nsheet[index]['Product Number'] == nsheet[q]['Product Number'] &&
+              nsheet[index]['Cost'] == nsheet[q]['Cost']) {
+              // console.log('shit happens here');
+
+              nsheet.splice(q, 1)
+
+            }
+          }
+
+        }
+        nsheet.forEach((e, i) => {
+          if (!String(e['Product Number']).includes('Laptops') ||
+            !String(e['Product Number']).includes('Desktops')) {
+            let newPrice = String(e['Cost']).replace(/,/g, '')
+            let fPrice = newPrice.replace(/£/g, '')
+
+            if (!isNaN(fPrice)) {
+              skuArr.push(e['Product Number'])
+              priceArr.push(fPrice)
+              stockArr.push(String(e['Stock Level']).replace(/[^\d\+]+/g, ''))
+              nameArr.push(element['name'])
+              nSkuArr.push(e['Product Number'])
+              setSkus(skuArr)
+            }
+          }
+
+
+        })
+
+        nData['sku'] = nSkuArr
+        nData['price'] = priceArr
+        nData['stock'] = stockArr
+        nData['supplier'] = nameArr
+        mArr.push(nData)
+        setMainArr(mArr)
+        nData = {}
+        nSkuArr = []
+        priceArr = []
+        stockArr = []
+        nameArr = []
+
+      }
+
+      if (element['name'].includes('Target Product Feed')) {
+        for (let index = 0; index < nsheet.length; index++) {
+          for (let q = index + 1; q < nsheet.length; q++) {
+            if (nsheet[index]['Stock_Code'] == nsheet[q]['Stock_Code'] &&
+              nsheet[index]['1_4'] == nsheet[q]['1_4']) {
+              // console.log('shit happens here');
+              console.log(nsheet[q]['Stock_Code'].toString());
+
+              nsheet.splice(q, 1)
+
+            }
+          }
+
+        }
+
+        nsheet.forEach((e, i) => {
+
+          let newPrice = String(e['1_4']).replace(/,/g, '')
+          let fPrice = newPrice.replace(/£/g, '')
+
+          if (!isNaN(fPrice)) {
+            skuArr.push(e['Stock_Code'])
+            priceArr.push(fPrice)
+            stockArr.push(String(e['Stock']).replace(/[^\d\+]+/g, ''))
+            nameArr.push(element['name'])
+            nSkuArr.push(e['Stock_Code'])
+            setSkus(skuArr)
+          }
+
+        })
+
+        nData['sku'] = nSkuArr
+        nData['price'] = priceArr
+        nData['stock'] = stockArr
+        nData['supplier'] = nameArr
+        mArr.push(nData)
+        setMainArr(mArr)
+        nData = {}
+        nSkuArr = []
+        priceArr = []
+        stockArr = []
+        nameArr = []
+      }
+
+      if (element['name'].includes('T.I DIG')) {
+        for (let index = 0; index < nsheet.length; index++) {
+          for (let q = index + 1; q < nsheet.length; q++) {
+            if (nsheet[index]['stock_code'] == nsheet[q]['stock_code'] &&
+              nsheet[index]['Price'] == nsheet[q]['Price']) {
+
+              nsheet.splice(q, 1)
+
+            }
+          }
+
+        }
+        console.log(nsheet);
+        nsheet.forEach((e, i) => {
+
+          let newPrice = String(e['Price']).replace(/,/g, '')
+          let fPrice = newPrice.replace(/£/g, '')
+
+          if (!isNaN(fPrice)) {
+            skuArr.push(e['stock_code'])
+            priceArr.push(fPrice)
+            stockArr.push(String(e['Qty']).replace(/[^\d\+]+/g, ''))
+            nameArr.push(element['name'])
+            nSkuArr.push(e['stock_code'])
+            setSkus(skuArr)
+          }
+
+        })
+
+        nData['sku'] = nSkuArr
+        nData['price'] = priceArr
+        nData['stock'] = stockArr
+        nData['supplier'] = nameArr
+        mArr.push(nData)
+        setMainArr(mArr)
+        nData = {}
+        nSkuArr = []
+        priceArr = []
+        stockArr = []
+        nameArr = []
+
+
+      }
+
+      if (element['name'].includes('TID006STOCK')) {
+        for (let index = 0; index < nsheet.length; index++) {
+          for (let q = index + 1; q < nsheet.length; q++) {
+            if (nsheet[index]['PART NO'] == nsheet[q]['PART NO'] &&
+              nsheet[index]['SELL_PRICE'] == nsheet[q]['SELL_PRICE']) {
+
+              nsheet.splice(q, 1)
+
+            }
+          }
+
+        }
+        console.log(nsheet);
+        nsheet.forEach((e, i) => {
+
+          let newPrice = String(e['SELL_PRICE']).replace(/,/g, '')
+          let fPrice = newPrice.replace(/£/g, '')
+
+          if (!isNaN(fPrice)) {
+            skuArr.push(e['PART NO'])
+            priceArr.push(fPrice)
+            stockArr.push(String(e['QTY']).replace(/[^\d\+]+/g, ''))
+            nameArr.push(element['name'])
+            nSkuArr.push(e['PART NO'])
+            setSkus(skuArr)
+          }
+
+        })
+
+        nData['sku'] = nSkuArr
+        nData['price'] = priceArr
+        nData['stock'] = stockArr
+        nData['supplier'] = nameArr
+        mArr.push(nData)
+        setMainArr(mArr)
+        nData = {}
+        nSkuArr = []
+        priceArr = []
+        stockArr = []
+        nameArr = []
+
+
+      }
+
+      // if (element['name'].includes('list1')) {
+      //   csvf.push(nsheet)
+      // }
+
+      // if (csvf.length == file.length) {
+      //   setWarr(csvf)
+      //   console.log(csvf);
+
+      // }
+
+    }
+    let timerId = setInterval(countdown, 1000);
+    let timeLeft = 19
+
+    setStartTimer(true)
+
+    function countdown() {
+      if (timeLeft == -1) {
+        clearTimeout(timerId);
+        setShowButton(true)
+        // doSomething();
+      } else {
+
+        setTimer(timeLeft)
+        timeLeft--;
+
+      }
+    }
+  }
   const handleParse = (event) => {
     // console.log(warr);
     if (!file) return setError("Enter a valid file");
     // -------------------------------------------------------------------------------------------
     for (let j = 0; j < warr.length; j++) {
-      warr[j]['results'].meta.fields.forEach((e, i) => {
+      warr[j].forEach((e, i) => {
+
+        // for (const key in object) {
+        //   if (Object.hasOwnProperty.call(object, key)) {
+        //     const element = object[key];
+
+        //   }
+        // }
+        for (const [key, value] of Object.entries(e)) {
+          // console.log(key);
+          if ((Object.keys(e).toString().toLowerCase().includes('eur')) && (Object.keys(e).toString().toLowerCase().includes('usd'))) {
+            console.log('dual exist');
+
+            if (key.toLowerCase().includes('eur')) {
+
+              priceTag.push(key)
+
+            }
+
+          } else {
+
+            if (key.toLowerCase().includes('eur')
+              || key.toLowerCase().includes('usd')
+              || key.toLowerCase().includes('cost')
+              || key.toLowerCase().includes('price')
+              || key.toLowerCase().includes('1_4')) {
+              // console.log(key.toLowerCase());
+
+              if (priceTag[j] === undefined) {
+                priceTag.push(key)
+              }
+            }
+          }
+
+          if (key.toLowerCase() === 'stock' || key.toLowerCase().includes('qty')
+            || key.toLowerCase() === 'on stock' || key.toLowerCase() === 'stock level'
+            || key.toLowerCase().includes('quantity')) {
+            stockTag.push(key)
+          }
+          if (key.toLowerCase().includes('sku') || key.toLowerCase().includes('mpn') || key.toLowerCase().includes('part number')
+            || key.toLowerCase().includes('part no') || key.toLowerCase().includes('p/n') || key.toLowerCase().includes('mfr')
+            || key.toLowerCase().includes('stock_code') || key.toLowerCase().includes('pn') || key.toLowerCase().includes('product number')) {
+
+            if (skuTag[j] === undefined) {
+              skuTag.push(key)
+            }
+          }
+
+        }
 
         // if (e.toLowerCase().includes('price')
         //   || e.toLowerCase().includes('euro') || e.toLowerCase().includes('usd')) {
 
-        if ((warr[j]['results'].meta.fields.includes('eur')
-          || warr[j]['results'].meta.fields.includes('Eur')
-          || warr[j]['results'].meta.fields.includes('EUR'))
-          && (warr[j]['results'].meta.fields.includes('USD')
-            || warr[j]['results'].meta.fields.includes('usd')
-            || warr[j]['results'].meta.fields.includes('Usd'))
-        ) {
-          if (e.toLowerCase().includes('eur')) {
-            // console.log('push exist');
-
-            priceTag.push(e)
-
-          }
-
-        } else {
-          if (e.toLowerCase().includes('eur')
-            || e.toLowerCase().includes('usd')
-            || (e.toLowerCase().includes('price')
-              || (e.toLowerCase().includes('1_4')))) {
-            // console.log('second push exist');
-            if (priceTag[j] === undefined) {
-              priceTag.push(e)
-            }
-          }
-        }
-        if (e.toLowerCase() === 'stock' || e.toLowerCase().includes('qty')
-          || e.toLowerCase() === 'on stock'
-          || e.toLowerCase().includes('quantity')) {
-          stockTag.push(e)
-        }
-        if (e.toLowerCase().includes('sku') || e.toLowerCase().includes('mpn') || e.toLowerCase().includes('part number')
-          || e.toLowerCase().includes('part no') || e.toLowerCase().includes('p/n') || e.toLowerCase().includes('mfr')
-          || e.toLowerCase().includes('stock_code') || e.toLowerCase().includes('pn')) {
-
-          if (skuTag[j] === undefined) {
-            skuTag.push(e)
-          }
-        }
       })
+      console.log(priceTag);
 
-      for (let c = 0; c < warr[j]['results'].data.length; c++) {
-        // console.log(results.data[c]); && !isNaN(warr[j]['results'].data[c][stockTag[j]])
-        let newPrice = String(warr[j]['results'].data[c][priceTag[j]]).replace(/,/g, '')
-        // console.log(!isNaN('1,085'.replace(/,/g, '')));
-        if (!isNaN(newPrice)) {
-          skuArr.push(warr[j]['results'].data[c][skuTag[j]])
-          if (priceTag[j].toLowerCase().includes('eur')) {
-            // console.log('its exist');
-            priceArr.push((euro * toNumber(newPrice)).toString())
+      // for (let c = 0; c < warr[j]['results'].data.length; c++) {
+      //   // console.log(results.data[c]); && !isNaN(warr[j]['results'].data[c][stockTag[j]])
+      //   let newPrice = String(warr[j]['results'].data[c][priceTag[j]]).replace(/,/g, '')
+      //   let fPrice = newPrice.replace(/£/g, '')
+      //   // let nPrice = String(fPrice).replace(/./g, '')
 
-          }
-          if (priceTag[j].toLowerCase().includes('usd')) {
-            // console.log('its exist');
-            priceArr.push((usd * toNumber(newPrice)).toString())
+      //   // console.log(!isNaN(fPrice));
+      // if (!isNaN(fPrice)) {
+      //   skuArr.push(warr[j]['results'].data[c][skuTag[j]])
+      //   if (priceTag[j].toLowerCase().includes('eur')) {
+      //     // console.log('its exist');
+      //     priceArr.push((euro * toNumber(fPrice)).toString())
 
-          }
-          if (priceTag[j].toLowerCase().includes('price') || priceTag[j].toLowerCase().includes('1_4')) {
-            // console.log('its exist');
-            priceArr.push(newPrice)
+      //   }
+      //   if (priceTag[j].toLowerCase().includes('usd')) {
+      //     // console.log('its exist');
+      //     priceArr.push((usd * toNumber(fPrice)).toString())
 
-          }
-          stockArr.push(warr[j]['results'].data[c][stockTag[j]].replace(/[^\d\+]+/g, ''))
-          nSkuArr.push(warr[j]['results'].data[c][skuTag[j]])
-          setSkus(skuArr)
-        }
+      //   }
+      //   if (priceTag[j].toLowerCase().includes('cost') || priceTag[j].toLowerCase().includes('price') || priceTag[j].toLowerCase().includes('1_4')) {
+      //     // console.log('its exist');
+      //     priceArr.push(fPrice)
 
-      }
+      //   }
+      //   stockArr.push(String(warr[j]['results'].data[c][stockTag[j]]).replace(/[^\d\+]+/g, ''))
+      //   // console.log(stockArr);
+      //   nSkuArr.push(warr[j]['results'].data[c][skuTag[j]])
+      //   setSkus(skuArr)
+      // }
 
-      nData['sku'] = nSkuArr
-      nData['price'] = priceArr
-      nData['stock'] = stockArr
+      //}
 
-      mArr.push(nData)
-      setMainArr(mArr)
-      nData = {}
-      nSkuArr = []
-      priceArr = []
-      stockArr = []
+      // nData['sku'] = nSkuArr
+      // nData['price'] = priceArr
+      // nData['stock'] = stockArr
+
+      // mArr.push(nData)
+      // setMainArr(mArr)
+      // nData = {}
+      // nSkuArr = []
+      // priceArr = []
+      // stockArr = []
     }
 
     // console.log(mArr);
@@ -312,10 +743,10 @@ function App() {
       const eSku = mainArr[j]['sku'];
       const ePrice = mainArr[j]['price'];
       const eStock = mainArr[j]['stock']
-      const eName = warr[j]['name']
+      const eName = mainArr[j]['supplier']
       for (let n = 0; n < eSku.length; n++) {
 
-        fData['Supplier'] = eName
+        fData['Supplier'] = eName[n]
         fData['SKU'] = eSku[n]
         fData['PRICE'] = ePrice[n]
         fData['STOCK'] = eStock[n]
@@ -332,14 +763,14 @@ function App() {
         const eSku = mainArr[j]['sku'];
         const ePrice = mainArr[j]['price'];
         const eStock = mainArr[j]['stock']
-        const eName = warr[j]['name']
+        const eName = mainArr[j]['supplier']
         // console.log(`EPrice ${ePrice}`);&& !nSkus.includes(eSku[n])
 
         for (let n = 0; n < eSku.length; n++) {
           if (fSkus[i] == eSku[n]) {
             price.push(ePrice[n])
             stock.push(eStock[n])
-            fname.push(eName)
+            fname.push(eName[n])
 
             // if (nSkus.includes(eSku[n])) {
 
@@ -419,17 +850,17 @@ function App() {
               })
 
               //-------------------------------------------------------------------------------------
-              for (let index = 0; index < newRR.length; index++) {
-                for (let q = index + 1; q < newRR.length; q++) {
-                  if (newRR[index]['SKU'] == newRR[q]['SKU']) {
-                    if (newRR[index]['Supplier'] == newRR[q]['Supplier']) {
-                      console.log(newRR[index]['SKU']);
-                      newRR.splice(q, 1)
-                      // break
-                    }
-                  }
-                }
-              }
+              // for (let index = 0; index < newRR.length; index++) {
+              //   for (let q = index + 1; q < newRR.length; q++) {
+              //     if (newRR[index]['SKU'] == newRR[q]['SKU']) {
+              //       if (newRR[index]['Supplier'] == newRR[q]['Supplier']) {
+              //         // console.log(newRR[index]['SKU']);
+              //         newRR.splice(q, 1)
+              //         // break
+              //       }
+              //     }
+              //   }
+              // }
               // ----------------------------------------------------------------------------------------------
               setFarr(newRR)
               data = {}
@@ -486,11 +917,11 @@ function App() {
       }
 
     }
-    // console.log(newRR);
+    console.log(newRR);
 
     // console.log(filesArr);
-    const res = await axiosClient.post('/masfeeditems', { 'data': filesArr })
     const nres = await axiosClient.post('/feeditems', { 'data': newRR })
+    const res = await axiosClient.post('/masfeeditems', { 'data': filesArr })
     //res['status'] == 200 && 
     if (res['status'] == 200 && nres['status'] == 200) {
       // setLoading(false)
@@ -503,8 +934,18 @@ function App() {
   }
   const findStockInRec = async () => {
     let rfeed = []
-    let feed = searchStock
-    let feeds = await axiosClient.get(`/masfeeditems/${feed}`)
+
+    if (searchStock.includes('/')) {
+      nq = searchStock.split('/')
+
+    } else {
+      nq = searchStock
+    }
+    let feeds = await axiosClient.get(`/masfeeditems/${nq}`, {
+      params: {
+        q: `${nq}`,
+      }
+    })
     // console.log(feeds);
 
     for (let index = 0; index < feeds.data['feeds'].length; index++) {
@@ -516,10 +957,21 @@ function App() {
     // console.log(hfeed);
   }
   const findFeeds = async () => {
+    let nq = ''
     let hfeed = []
-    let feed = hSearch
-    let feeds = await axiosClient.get(`/feeditems/${feed}`)
-    // console.log(feeds);
+    // hSearch
+    if (hSearch.includes('/')) {
+      nq = hSearch.split('/')
+
+    } else {
+      nq = hSearch
+    }
+    let feeds = await axiosClient.get(`/feeditems/${nq}`, {
+      params: {
+        q: `${nq}`,
+      }
+    })
+    // console.log(nq);
 
     for (let index = 0; index < feeds.data['feeds'].length; index++) {
 
@@ -622,6 +1074,18 @@ function App() {
 
     }
   }
+
+
+  const handleFileConvert = () => {
+
+    csvf.forEach((e, i) => {
+      console.log(e);
+      XLSX.writeFile(e, `${csvnames[i]}.csv`, { bookType: 'csv', type: 'array' })
+
+    })
+    // FileSaver.saveAs('ws', 'converted')
+
+  }
   return (
     // <Row>
 
@@ -633,10 +1097,20 @@ function App() {
             multiple
             type="File"
             name="files[]"
+            // accept='.xlsx'
+            onChange={handleXlUpoad}
+            style={{ display: "block", margin: "10px auto" }}
+          />
+          <br />
+          {/* <button onClick={handleFileConvert}>Download converted</button>
+          <input
+            multiple
+            type="File"
+            name="files[]"
             accept=".csv"
             onChange={handleFileChange}
             style={{ display: "block", margin: "10px auto" }}
-          />
+          /> */}
           <div>
             <h6>*EURO to GBP</h6>
             <input placeholder='EURO to GBP' type='text' name='eur_to_gbp'
@@ -650,7 +1124,7 @@ function App() {
           </div>
           <br />
           <div>
-            <button className='btn btn-primary' onClick={handleParse}>Apply</button>
+            <button className='btn btn-primary' onClick={handleNParse}>Apply</button>
           </div>
         </div>
         <br />
