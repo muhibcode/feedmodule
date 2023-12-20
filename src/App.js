@@ -934,6 +934,7 @@ function App() {
   }
   const findStockInRec = async () => {
     let rfeed = []
+    let nq = ''
 
     if (searchStock.includes('/')) {
       nq = searchStock.split('/')
@@ -966,6 +967,7 @@ function App() {
     } else {
       nq = hSearch
     }
+
     let feeds = await axiosClient.get(`/feeditems/${nq}`, {
       params: {
         q: `${nq}`,
