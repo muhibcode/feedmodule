@@ -1202,7 +1202,7 @@ function App() {
             <br />
           </>
         }
-        <div>
+        {/* <div>
           <h6>Find Lowest Price</h6>
           <input placeholder='Search Lowest Price' type='text' name='search_history'
             onChange={(e) => setHSearch(e.target.value)} />
@@ -1210,7 +1210,7 @@ function App() {
         <br />
         <div>
           <button className='btn btn-primary' onClick={findFeeds}>Search</button>
-        </div>
+        </div> */}
         <br />
         <br />
         <div>
@@ -1226,7 +1226,7 @@ function App() {
           <button className='btn btn-primary' onClick={findStockInRec}>Search</button>
         </div>
         <br />
-        <br />
+        {/* <br />
         <h6>*Please Upload the Excel files by clicking choose files button</h6>
         <div>
           <input placeholder='Search Excel File Records' type='text' name='search_file_records'
@@ -1236,7 +1236,7 @@ function App() {
         <div>
           <button className='btn btn-primary' onClick={handleSearch}>Search</button>
         </div>
-        <br />
+        <br /> */}
         {/* <h6>Show all Feeds</h6>
         <Button className='primary' onClick={getAllFeeds}>
           Feeds
@@ -1348,6 +1348,9 @@ function App() {
           </Row >
         </>
         }
+        <br />
+        <br />
+        <br />
         {history.length > 0 && <>  <Row>
           <h3>Search Results</h3>
           <Col >
