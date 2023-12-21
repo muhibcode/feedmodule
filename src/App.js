@@ -22,7 +22,7 @@ function App() {
   const [rtime, setrtime] = useState(10)
   const [startTimer, setStartTimer] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [timer, setTimer] = useState(20)
+  const [timer, setTimer] = useState(10)
   const [supName, setSupName] = useState([])
   const [showButton, setShowButton] = useState(false);
   const [error, setError] = useState("");
@@ -568,7 +568,8 @@ function App() {
 
     }
     let timerId = setInterval(countdown, 1000);
-    let timeLeft = 19
+
+    let timeLeft = 9
 
     setStartTimer(true)
 
@@ -917,15 +918,17 @@ function App() {
       }
 
     }
-    console.log(newRR);
+    // console.log(newRR);
 
-    // console.log(filesArr);
-    const nres = await axiosClient.post('/feeditems', { 'data': newRR })
     const res = await axiosClient.post('/masfeeditems', { 'data': filesArr })
-    //res['status'] == 200 && 
-    if (res['status'] == 200 && nres['status'] == 200) {
+
+    if (res['status'] == 200) {
+      const nres = await axiosClient.post('/feeditems', { 'data': newRR })
+      if (nres['status'] == 200) {
+        setShowButton(false)
+
+      }
       // setLoading(false)
-      setShowButton(false)
 
     }
 
@@ -1138,11 +1141,11 @@ function App() {
 
         {showButton ?
           <div>
-            <Button onClick={finalres}>Get Result</Button>
+            <Button onClick={finalres}>SUBMIT</Button>
           </div>
           :
           <div>
-            <Button disabled onClick={() => { }}>Get Result</Button>
+            <Button disabled onClick={() => { }}>SUBMIT</Button>
           </div>
         }
 
