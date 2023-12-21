@@ -1141,11 +1141,11 @@ function App() {
 
         {showButton ?
           <div>
-            <Button onClick={finalres}>SUBMIT</Button>
+            <Button onClick={finalres}>Submit</Button>
           </div>
           :
           <div>
-            <Button disabled onClick={() => { }}>SUBMIT</Button>
+            <Button disabled onClick={() => { }}>Submit</Button>
           </div>
         }
 
