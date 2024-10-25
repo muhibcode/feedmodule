@@ -1212,7 +1212,7 @@ function App() {
           <button className='btn btn-primary' onClick={findFeeds}>Search</button>
         </div> */}
         <br />
-        <div>
+        <div >
           <h6>Find Stock in Record</h6>
           <input placeholder='Search Stock in Records' type='text' name='stock_in_records'
             onChange={(e) => {
